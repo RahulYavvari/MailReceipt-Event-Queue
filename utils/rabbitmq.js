@@ -18,7 +18,7 @@ const publish_payload = async (connection, message) => {
         channel.sendToQueue("jobs", Buffer.from(JSON.stringify(message)));
         console.log(`[LOG] Job sent successfully ${message.id}`);
     } catch(err) {
-        console.err("[ERR LOG] An error occured when publishing the payload to the queue", err);
+        console.error("[ERR LOG] An error occured when publishing the payload to the queue", err);
     }
 }
 

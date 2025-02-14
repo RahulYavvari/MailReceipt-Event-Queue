@@ -4,6 +4,7 @@ const ua = require('express-useragent');
 
 const rabbitmq = require("./utils/rabbitmq.js");
 const locationAPI = require("./utils/location.js");
+const cleaner = require("./utils/cleaner.js");
 
 dotenv.config();
 
@@ -15,13 +16,16 @@ app.use(ua.express());
 const port = process.env.PORT;
 const railway_rabbitmq_url = process.env.RAILWAY_RABBITMQ_URL;
 
-const connection = rabbitmq.connect(railway_rabbitmq_url);
+let connection;
+(async () => {
+    connection = await rabbitmq.connect(railway_rabbitmq_url);
+})();
 
 app.get("/visit", async (req, res) => {
     try {
         const id = req.query.id;
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        const device_info = req.useragent;
+        const device_info = cleaner.useragentCleaner(req.useragent);
         const referrer = req.get('Referer') || 'No referrer';
         const origin = req.get('Origin') || 'No origin';
         const location = await locationAPI.locate(ip);
@@ -33,9 +37,9 @@ app.get("/visit", async (req, res) => {
             id, ip, device_info, referrer, origin, location, status, accumulator, time
         };
 
-        console.log(message);
+        await rabbitmq.publish_payload(connection, message);
 
-        var options = {
+        const options = {
             root: __dirname,
             dotfiles: 'deny',
             headers: {
