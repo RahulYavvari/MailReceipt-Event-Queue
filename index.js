@@ -55,6 +55,9 @@ app.get("/visit", async (req, res) => {
     }
 });
 
+app.get("/health", (req, res) => {
+    res.json({status: "healthy"});
+});
 
 app.listen(port, () => {
     console.log(`[LOG] Connected to port ${port}`);
